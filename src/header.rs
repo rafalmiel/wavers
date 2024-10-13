@@ -144,14 +144,14 @@ impl WavHeader {
         let wav_type: WavType = TypeId::of::<T>().try_into()?;
 
         let (main_format, sub_format) = match wav_type {
-            WavType::Pcm16 | WavType::Pcm24 | WavType::Pcm32 => {
+            WavType::Pcm8 | WavType::Pcm16 | WavType::Pcm24 | WavType::Pcm32 => {
                 (FormatCode::WAV_FORMAT_PCM, FormatCode::WAV_FORMAT_PCM)
             }
             WavType::Float32 | WavType::Float64 => (
                 FormatCode::WAVE_FORMAT_EXTENSIBLE,
                 FormatCode::WAV_FORMAT_IEEE_FLOAT,
             ),
-            WavType::EPcm16 | WavType::EPcm24 | WavType::EPcm32 => (
+            WavType::EPcm8 | WavType::EPcm16 | WavType::EPcm24 | WavType::EPcm32 => (
                 FormatCode::WAVE_FORMAT_EXTENSIBLE,
                 FormatCode::WAV_FORMAT_PCM,
             ),

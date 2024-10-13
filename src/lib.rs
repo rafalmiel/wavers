@@ -199,11 +199,13 @@ macro_rules! log {
 #[inline(always)]
 pub fn read<T: AudioSample, P: AsRef<Path>>(path: P) -> WaversResult<(Samples<T>, i32)>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -252,11 +254,13 @@ pub fn write<T: AudioSample, P: AsRef<Path>>(
     n_channels: u16,
 ) -> WaversResult<()>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,

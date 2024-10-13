@@ -14,11 +14,13 @@ use crate::{core::alloc_sample_buffer, i24, AudioSample, ConvertSlice, ConvertTo
 /// Note: This iterator *should* reset the Wav struct to the beginning of the data chunk when it is done iterating.
 pub struct FrameIterator<'a, T: 'a + AudioSample>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -31,11 +33,13 @@ where
 
 impl<'a, T: 'a + AudioSample> FrameIterator<'a, T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -49,11 +53,13 @@ where
 
 impl<'a, T: 'a + AudioSample> Iterator for FrameIterator<'a, T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -102,11 +108,13 @@ where
 /// Note: This iterator *should* reset the Wav struct to the beginning of the data chunk when it is done iterating.
 pub struct ChannelIterator<'a, T: 'a + AudioSample>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -120,11 +128,13 @@ where
 
 impl<'a, T: 'a + AudioSample> ChannelIterator<'a, T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -143,11 +153,13 @@ where
 
 impl<'a, T: 'a + AudioSample> Iterator for ChannelIterator<'a, T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -211,11 +223,13 @@ where
 #[derive(Debug)]
 pub struct BlockIterator<'a, T: 'a + AudioSample>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -231,11 +245,13 @@ where
 }
 impl<'a, T: 'a + AudioSample> BlockIterator<'a, T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -289,11 +305,13 @@ where
 
 impl<'a, T: 'a + AudioSample> Iterator for BlockIterator<'a, T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,

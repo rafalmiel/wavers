@@ -9,6 +9,7 @@ use pyo3::prelude::*;
 
 use crate::{error::FormatError, i24, WaversError, WaversResult};
 
+const PCM_8_BITS: u16 = (std::mem::size_of::<u8>() * 8) as u16;
 const PCM_16_BITS: u16 = (std::mem::size_of::<i16>() * 8) as u16;
 const PCM_24_BITS: u16 = (std::mem::size_of::<i24>() * 8) as u16;
 const PCM_32_BITS: u16 = (std::mem::size_of::<i32>() * 8) as u16;
@@ -75,11 +76,13 @@ impl TryFrom<u16> for FormatCode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub enum WavType {
+    Pcm8,
     Pcm16,
     Pcm24,
     Pcm32,
     Float32,
     Float64,
+    EPcm8,
     EPcm16,
     EPcm24,
     EPcm32,
@@ -91,6 +94,7 @@ impl WavType {
     /// Converts the WavType to the number of bytes per sample.
     pub const fn n_bytes(&self) -> usize {
         match self {
+            WavType::Pcm8 | WavType::EPcm8 => std::mem::size_of::<u8>(),
             WavType::Pcm16 | WavType::EPcm16 => std::mem::size_of::<i16>(),
             WavType::Pcm24 | WavType::EPcm24 => std::mem::size_of::<i24>(),
             WavType::Pcm32 | WavType::EPcm32 => std::mem::size_of::<i32>(),
@@ -102,6 +106,7 @@ impl WavType {
     /// Converts the WavType to the number of bits per sample.
     pub const fn n_bits(&self) -> u16 {
         match self {
+            WavType::Pcm8 | WavType::EPcm8 => PCM_8_BITS,
             WavType::Pcm16 | WavType::EPcm16 => PCM_16_BITS,
             WavType::Pcm24 | WavType::EPcm24 => PCM_24_BITS,
             WavType::Pcm32 | WavType::EPcm32 => PCM_32_BITS,
@@ -114,11 +119,13 @@ impl WavType {
 impl Display for WavType {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            WavType::Pcm8 => write!(f, "PCM_8"),
             WavType::Pcm16 => write!(f, "PCM_16"),
             WavType::Pcm24 => write!(f, "PCM_24"),
             WavType::Pcm32 => write!(f, "PCM_32"),
             WavType::Float32 => write!(f, "IEEE_FLOAT_32"),
             WavType::Float64 => write!(f, "IEEE_FLOAT_64"),
+            WavType::EPcm8 => write!(f, "EXTENSIBLE_PCM_8"),
             WavType::EPcm16 => write!(f, "EXTENSIBLE_PCM_16"),
             WavType::EPcm24 => write!(f, "EXTENSIBLE_PCM_24"),
             WavType::EPcm32 => write!(f, "EXTENSIBLE_PCM_32"),
@@ -131,11 +138,15 @@ impl Display for WavType {
 /// Converts a tuple of format codes and bits per sample to a WavType.
 pub const fn format_info_to_wav_type(info: (FormatCode, u16, FormatCode)) -> WaversResult<WavType> {
     Ok(match info {
+        (FormatCode::WAV_FORMAT_PCM, PCM_8_BITS, _) => WavType::Pcm8,
         (FormatCode::WAV_FORMAT_PCM, PCM_16_BITS, _) => WavType::Pcm16,
         (FormatCode::WAV_FORMAT_PCM, PCM_24_BITS, _) => WavType::Pcm24,
         (FormatCode::WAV_FORMAT_PCM, PCM_32_BITS, _) => WavType::Pcm32,
         (FormatCode::WAV_FORMAT_IEEE_FLOAT, FLOAT_32_BITS, _) => WavType::Float32,
         (FormatCode::WAV_FORMAT_IEEE_FLOAT, FLOAT_64_BITS, _) => WavType::Float64,
+        (FormatCode::WAVE_FORMAT_EXTENSIBLE, PCM_8_BITS, FormatCode::WAV_FORMAT_PCM) => {
+            WavType::EPcm8
+        }
         (FormatCode::WAVE_FORMAT_EXTENSIBLE, PCM_16_BITS, FormatCode::WAV_FORMAT_PCM) => {
             WavType::EPcm16
         }
@@ -165,6 +176,11 @@ pub const fn format_info_to_wav_type(info: (FormatCode, u16, FormatCode)) -> Wav
 /// Converts a WavType to a tuple of format codes and bits per sample.
 pub const fn wav_type_to_format_info(wav_type: WavType) -> (FormatCode, u16, FormatCode) {
     match wav_type {
+        WavType::Pcm8 => (
+            FormatCode::WAV_FORMAT_PCM,
+            PCM_8_BITS,
+            FormatCode::WAV_FORMAT_PCM,
+        ),
         WavType::Pcm16 => (
             FormatCode::WAV_FORMAT_PCM,
             PCM_16_BITS,
@@ -189,6 +205,11 @@ pub const fn wav_type_to_format_info(wav_type: WavType) -> (FormatCode, u16, For
             FormatCode::WAV_FORMAT_IEEE_FLOAT,
             FLOAT_64_BITS,
             FormatCode::WAV_FORMAT_IEEE_FLOAT,
+        ),
+        WavType::EPcm8 => (
+            FormatCode::WAVE_FORMAT_EXTENSIBLE,
+            PCM_8_BITS,
+            FormatCode::WAV_FORMAT_PCM,
         ),
         WavType::EPcm16 => (
             FormatCode::WAVE_FORMAT_EXTENSIBLE,
@@ -221,6 +242,7 @@ pub const fn wav_type_to_format_info(wav_type: WavType) -> (FormatCode, u16, For
 impl From<WavType> for TypeId {
     fn from(value: WavType) -> Self {
         match value {
+            WavType::Pcm8 | WavType::EPcm8 => TypeId::of::<u8>(),
             WavType::Pcm16 | WavType::EPcm16 => TypeId::of::<i16>(),
             WavType::Pcm24 | WavType::EPcm24 => TypeId::of::<i24>(),
             WavType::Pcm32 | WavType::EPcm32 => TypeId::of::<i32>(),
@@ -235,6 +257,7 @@ impl TryFrom<TypeId> for WavType {
 
     fn try_from(value: TypeId) -> Result<Self, Self::Error> {
         match value {
+            x if x == TypeId::of::<u8>() => Ok(WavType::Pcm8),
             x if x == TypeId::of::<i16>() => Ok(WavType::Pcm16),
             x if x == TypeId::of::<i24>() => Ok(WavType::Pcm24),
             x if x == TypeId::of::<i32>() => Ok(WavType::Pcm32),

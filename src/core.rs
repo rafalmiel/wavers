@@ -43,11 +43,13 @@ impl<T: Read + Seek> ReadSeek for T {}
 /// The header information is available after instantiating the struct and can be used to inspect the wav file.
 pub struct Wav<T: AudioSample>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -61,11 +63,13 @@ where
 
 impl<T: AudioSample> Wav<T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -171,6 +175,10 @@ where
         }
 
         match wav_type_from_file {
+            WavType::Pcm8 | WavType::EPcm8 => {
+                let samples  = samples.as_ref();
+                Ok(Samples::from(samples).convert())
+            }
             WavType::Pcm16 | WavType::EPcm16 => {
                 let samples: &[i16] = cast_slice::<u8, i16>(&samples);
                 Ok(Samples::from(samples).convert())
@@ -212,6 +220,10 @@ where
         );
         match wav_type_from_file {
             // file is encoded as i16 but we want T
+            WavType::Pcm8 | WavType::EPcm8 => {
+                let buf: [u8; 1] = [samples[0]];
+                Ok(u8::from_ne_bytes(buf).convert_to())
+            }
             WavType::Pcm16 | WavType::EPcm16 => {
                 let buf: [u8; 2] = [samples[0], samples[1]];
                 Ok(i16::from_ne_bytes(buf).convert_to())
@@ -487,11 +499,13 @@ pub struct WavInfo {
 
 impl<T: AudioSample> Debug for Wav<T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -516,11 +530,13 @@ where
 
 impl<T: AudioSample> Display for Wav<T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
     f32: ConvertTo<T>,
     f64: ConvertTo<T>,
+    Box<[u8]>: ConvertSlice<T>,
     Box<[i16]>: ConvertSlice<T>,
     Box<[i24]>: ConvertSlice<T>,
     Box<[i32]>: ConvertSlice<T>,
@@ -575,6 +591,7 @@ use crate::conversion::{AsNdarray, IntoNdarray};
 #[cfg(feature = "ndarray")]
 impl<T: AudioSample> IntoNdarray for Wav<T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
@@ -598,6 +615,7 @@ where
 #[cfg(feature = "ndarray")]
 impl<T: AudioSample> AsNdarray for Wav<T>
 where
+    u8: ConvertTo<T>,
     i16: ConvertTo<T>,
     i24: ConvertTo<T>,
     i32: ConvertTo<T>,
@@ -701,17 +719,17 @@ where
 }
 
 // From u8 Buffer
-impl<T> From<&[u8]> for Samples<T>
-where
-    T: AudioSample,
-{
-    fn from(bytes: &[u8]) -> Self {
-        let casted_samples: &[T] = cast_slice::<u8, T>(bytes);
-        Samples {
-            samples: Box::from(casted_samples),
-        }
-    }
-}
+//impl<T> From<&[u8]> for Samples<T>
+//where
+//    T: AudioSample,
+//{
+//    fn from(bytes: &[u8]) -> Self {
+//        let casted_samples: &[T] = cast_slice::<u8, T>(bytes);
+//        Samples {
+//            samples: Box::from(casted_samples),
+//        }
+//    }
+//}
 
 #[cfg(feature = "ndarray")]
 impl<T> From<Array2<T>> for Samples<T>
@@ -770,6 +788,7 @@ where
     }
 }
 
+impl Samples<u8> {}
 impl Samples<i16> {}
 impl Samples<i24> {}
 impl Samples<i32> {}

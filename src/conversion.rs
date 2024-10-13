@@ -12,6 +12,7 @@ pub trait AudioSample:
     Copy
     + Pod
     + Num
+    + ConvertTo<u8>
     + ConvertTo<i16>
     + ConvertTo<i32>
     + ConvertTo<i24>
@@ -23,6 +24,7 @@ pub trait AudioSample:
 {
 }
 
+impl AudioSample for u8 {}
 impl AudioSample for i16 {}
 impl AudioSample for i24 {}
 impl AudioSample for i32 {}
@@ -55,8 +57,57 @@ where
         out
     }
 }
+// u8 //
+impl ConvertTo<u8> for u8 {
+    #[inline(always)]
+    fn convert_to(&self) -> u8 {
+        *self
+    }
+}
+
+impl ConvertTo<i16> for u8 {
+    #[inline(always)]
+    fn convert_to(&self) -> i16 {
+        (*self as i16 - 128) << 8
+    }
+}
+
+impl ConvertTo<i24> for u8 {
+    #[inline(always)]
+    fn convert_to(&self) -> i24 {
+        i24::from_i32((*self as i32 - 128) << 16)
+    }
+}
+
+impl ConvertTo<i32> for u8 {
+    #[inline(always)]
+    fn convert_to(&self) -> i32 {
+        (*self as i32 - 128) << 24
+    }
+}
+
+impl ConvertTo<f32> for u8 {
+    #[inline(always)]
+    fn convert_to(&self) -> f32 {
+        (((*self as i16 - 128) as f32) / (i8::MAX as f32)).clamp(-1.0, 1.0)
+    }
+}
+
+impl ConvertTo<f64> for u8 {
+    #[inline(always)]
+    fn convert_to(&self) -> f64 {
+        (((*self as i16 - 128) as f64) / (i8::MAX as f64)).clamp(-1.0, 1.0)
+    }
+}
 
 // i16 //
+impl ConvertTo<u8> for i16 {
+    #[inline(always)]
+    fn convert_to(&self) -> u8 {
+        ((*self >> 8) + 128) as u8
+    }
+}
+
 impl ConvertTo<i16> for i16 {
     #[inline(always)]
     fn convert_to(&self) -> i16 {
@@ -93,6 +144,12 @@ impl ConvertTo<f64> for i16 {
 }
 
 // i24 //
+impl ConvertTo<u8> for i24 {
+    #[inline(always)]
+    fn convert_to(&self) -> u8 {
+        ((self.to_i32() >> 16) as i16 + 128) as u8
+    }
+}
 
 impl ConvertTo<i16> for i24 {
     #[inline(always)]
@@ -130,6 +187,13 @@ impl ConvertTo<f64> for i24 {
 }
 
 // i32 //
+impl ConvertTo<u8> for i32 {
+    #[inline(always)]
+    fn convert_to(&self) -> u8 {
+        ((*self >> 24) as i16 + 128) as u8
+    }
+}
+
 impl ConvertTo<i16> for i32 {
     #[inline(always)]
     fn convert_to(&self) -> i16 {
@@ -166,6 +230,13 @@ impl ConvertTo<f64> for i32 {
 }
 
 // f32 //
+impl ConvertTo<u8> for f32 {
+    #[inline(always)]
+    fn convert_to(&self) -> u8 {
+        (((*self * (i8::MAX as f32)).clamp(i8::MIN as f32, i8::MAX as f32)).round() as i16 + 128) as u8
+    }
+}
+
 impl ConvertTo<i16> for f32 {
     #[inline(always)]
     fn convert_to(&self) -> i16 {
@@ -204,6 +275,13 @@ impl ConvertTo<f64> for f32 {
 }
 
 // f64 //
+impl ConvertTo<u8> for f64 {
+    #[inline(always)]
+    fn convert_to(&self) -> u8 {
+        (((*self * (i8::MAX as f64)).clamp(i8::MIN as f64, i8::MAX as f64)).round() as i16 + 128) as u8
+    }
+}
+
 impl ConvertTo<i16> for f64 {
     #[inline(always)]
     fn convert_to(&self) -> i16 {
